@@ -18,6 +18,40 @@
         }
       }
     },
+    "auto" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Авто"
+          }
+        }
+      }
+    },
+    "copy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Копіювати"
+          }
+        }
+      }
+    },
     "enter_text_placeholder" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -35,14 +69,39 @@
         }
       }
     },
-    "Go back" : {
-
+    "paste" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paste"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вставити"
+          }
+        }
+      }
     },
-    "Hello, world!" : {
-
-    },
-    "im lang select" : {
-
+    "tap_to_start" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap to start printing"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Натисніть щоб друкувати"
+          }
+        }
+      }
     },
     "translate" : {
       "extractionState" : "manual",
@@ -57,17 +116,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Переклад"
-          }
-        }
-      }
-    },
-    "Translate" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Translate"
           }
         }
       }

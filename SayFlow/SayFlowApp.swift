@@ -9,7 +9,7 @@ import SwiftUI
 
 @main
 struct SayFlowApp: App {
-    @StateObject private var router = ViewsRouter()
+    @StateObject private var router = ViewsRouter(di: DIContainer())
     
     var body: some Scene {
         WindowGroup {

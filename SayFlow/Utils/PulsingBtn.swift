@@ -14,11 +14,7 @@ struct PulsingButtonStyle: ButtonStyle {
     var ringCount: Int = 2
     var duration: Double = 1.1
     var pressScale: CGFloat = 0.98
-
-    /// Внешний флаг — если true, пульс идёт даже без удержания
     var isActive: Bool = false
-
-    /// Если хочется, чтобы при удержании тоже пульсировал (обычно да)
     var alsoPulseWhilePressed: Bool = true
 
     func makeBody(configuration: Configuration) -> some View {
@@ -61,8 +57,8 @@ struct PulsingButtonStyle: ButtonStyle {
                 .overlay(pulseOverlay)
                 .scaleEffect(configuration.isPressed ? pressScale : 1)
                 .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
-                .onChange(of: pulsingNow) { 
-                    anim = $0
+                .onChange(of: pulsingNow) { oldValue, newValue in
+                    anim = newValue
                 }
                 .onAppear {
                     anim = pulsingNow

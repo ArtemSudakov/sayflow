@@ -130,7 +130,6 @@ struct AutoGrowShrinkTextEditor: View {
     var isSelectable: Bool = true
     var autoScrollToBottomOnChange: Bool = false  
     var contentInset: UIEdgeInsets = .init(top: 8, left: 14, bottom: 8, right: 14)
-    var shrinkExponent: Double = 2     // 2 ≈ медленнее вдвое; больше — ещё медленнее
     var shrinkDelay: CGFloat = 0       // 0.15 = начнёт уменьшать после 15% заполнения
 
 
@@ -138,17 +137,20 @@ struct AutoGrowShrinkTextEditor: View {
     @State private var displayHeight: CGFloat = 0       // сглаженная высота
     @State private var availableWidth: CGFloat = 0      // ширина контейнера
 
-    private var currentFont: CGFloat {
-        let width = max(1, availableWidth)
-        let hAtMax = measureHeight(text: text, width: width, font: fontRange.upperBound)
-
-        let fill = clamp((hAtMax - minHeight) / (maxHeight - minHeight), 0, 1) // 0...1
-        let delayed = clamp((fill - shrinkDelay) / (1 - shrinkDelay), 0, 1)    // с задержкой старта
-        let eased = pow(Double(delayed), shrinkExponent)                        // замедление
-
-        return fontRange.upperBound - CGFloat(eased) * (fontRange.upperBound - fontRange.lowerBound)
+    private func bestFittingFont(for text: String, width: CGFloat) -> CGFloat {
+        var size = fontRange.upperBound
+        while size >= fontRange.lowerBound {
+            let h = measureHeight(text: text, width: width, font: size)
+            if h <= maxHeight { return size }  // нашли подходящий размер
+            size -= 1
+        }
+        return fontRange.lowerBound
     }
 
+    
+    private var currentFont: CGFloat {
+        bestFittingFont(for: text, width: availableWidth)
+    }
 
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -177,7 +179,7 @@ struct AutoGrowShrinkTextEditor: View {
         }
         // читаем ширину ПОВЕРХ текущей раскладки — это не раздувает вью
         .background(WidthReader(width: $availableWidth))
-        .onChange(of: measuredHeight) { newHeight in
+        .onChange(of: measuredHeight) { oldHeight, newHeight in
             let target = clamp(newHeight, minHeight, maxHeight)
             if abs(target - displayHeight) > 0.8 {
                 withAnimation(.easeInOut(duration: 0.18)) {

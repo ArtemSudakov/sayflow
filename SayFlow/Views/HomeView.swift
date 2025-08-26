@@ -7,59 +7,189 @@
 
 import SwiftUI
 
-struct HomeView: View {
-    @EnvironmentObject private var router: ViewsRouter
+protocol HomeViewModelProtocol: ObservableObject {
+    var inputText: String { get set }
+    var outText: String { get set }
+    var fromLangLabel: String { get }
+    var toLangLabel: String { get }
     
-    @State private var inputText: String = ""
-    @State private var outText: String = ""
+    func recordingStart()
+    func recordingStop()
+    func swapLangs()
+    func openCamera()
+    func openGellary()
+    func openSettings()
+    func openHistory()
+    func fromLangSelectOpen()
+    func toLangSelectOpen()
+    func clearTranslateText()
+    func saveToHistory()
+    func copyFromText()
+    func copyToText()
+    func pasteFromClipboard()
+}
+
+struct HomeView<VM: HomeViewModelProtocol>: View {
+    @ObservedObject var vm: VM
     @State private var keyboardShown = false
-    
-    @State private var from = "auto"
-    @State private var to   = "ukrainian"
     
     // mic btn 2 event types logic
     @State private var recording = false
     @State private var suppressNextTap = false
+    @FocusState private var isFocused: Bool
     
     var body: some View {
         VStack {
             VStack {
                 HStack {
-                    Button(action: {
-                    }) {
-                        Image(systemName: "timer")
+                    if (vm.inputText.isEmpty) {
+                        Button(action: {
+                            vm.openHistory()
+                        }) {
+                            Image(systemName: "timer")
+                                .font(.title3)
+                                .foregroundColor(Color("Gray44"))
+                                .fontWeight(.bold)
+                                .frame(width: 24, height: 24)
+                        }
+                        .id("historyBtn")
+                        .transition(.scale.combined(with: .opacity))
+                    }
+                    else {
+                        Button(action: {
+                            vm.saveToHistory()
+                        }) {
+                            Image(
+                                systemName: "square.and.arrow.down.badge.clock"
+                            )
                             .font(.title3)
                             .foregroundColor(Color("Gray44"))
-                            .bold()
+                            .frame(width: 24, height: 24)
+                        }
+                        .id("settingsBtn")
+                        .transition(.scale.combined(with: .opacity))
                     }
                     Spacer()
                     Text("translate".localized)
                         .fontWeight(.ultraLight)
                         .font(.title2)
                     Spacer()
-                    Button(action: {
-                        
-                    }) {
-                        Image(systemName: "gearshape.fill")
-                            .font(.title3)
-                            .foregroundColor(Color("Gray44"))
+                    if (vm.inputText.isEmpty) {
+                        Button(action: {
+                            vm.openSettings()
+                        }) {
+                            Image(systemName: "gearshape.fill")
+                                .font(.title3)
+                                .foregroundColor(Color("Gray44"))
+                                .frame(width: 24, height: 24)
+                        }
+                        .id("saveHistoryBtn")
+                        .transition(.scale.combined(with: .opacity))
+                    }
+                    else {
+                        Button(action: {
+                            vm.clearTranslateText()
+                        }) {
+                            Image(systemName: "xmark")
+                                .font(.title3)
+                                .foregroundColor(Color("Gray44"))
+                                .frame(width: 24, height: 24)
+                        }
+                        .id("cleanInputArea")
+                        .transition(.scale.combined(with: .opacity))
                     }
                 }
                 .padding()
+                .padding(.top, -16)
+                .animation(.easeInOut, value: vm.inputText.isEmpty)
+                
+                ZStack {
+                    AutoGrowShrinkTextEditor(
+                        text: $vm.inputText,
+                        placeholder: "enter_text_placeholder".localized,
+                        minHeight: 50,
+                        maxHeight: 150,
+                        fontRange: 18...28,
+                        weight: .bold,
+                        isEditable: true
+                    )
+                    .fadingEdges([.top], length: 10)
+                    .focused($isFocused)
+                    VStack {
+                        if vm.inputText.isEmpty {
+                            HStack {
+                                Spacer()
+                                Button {
+                                    vm.pasteFromClipboard()
+                                } label: {
+                                    HStack {
+                                        Text("paste".localized)
+                                            .foregroundColor(Color("Gray44"))
+                                            .fontWeight(.light)
+                                        Image(systemName: "return.left")
+                                            .font(.title3)
+                                            .foregroundColor(Color("Gray44"))
+                                    }
+                                    .id("insertFromClipboard")
+                                    .transition(.scale.combined(with: .opacity))
+                                }
+                                
+                            }
+                            .padding()
+                            .padding(.top, 4)
+                        }
+                    }.animation(.easeInOut, value: vm.inputText.isEmpty)
+                }
+                .padding(.horizontal)
+                .padding(.top, -8)
+                
+                VStack {
+                    if (!vm.inputText.isEmpty) {
+                        HStack {
+                            Spacer()
+                            Button {
+                                vm.copyFromText()
+                            } label: {
+                                HStack {
+                                    
+                                    Text("copy".localized)
+                                        .foregroundColor(Color("Gray44"))
+                                        .fontWeight(.light)
+                                        .font(.subheadline)
+                                    
+                                    Image(
+                                        systemName: "document.on.document.fill"
+                                    )
+                                    .font(.subheadline)
+                                    .foregroundColor(Color("Gray44"))
+                                    .symbolRenderingMode(.hierarchical)
+                                    
+                                }.padding(.top, -4)
+                                
+                            }
+                            .opacity(vm.inputText.isEmpty ? 0 : 1)
+                            .disabled(vm.inputText.isEmpty)
+                            
+                        }.padding(.horizontal)
+                        
+                    }
+                }.animation(.easeInOut, value: vm.inputText.isEmpty)
+                
+                VStack {
+                    if (vm.inputText.isEmpty && !keyboardShown) {
+                        VStack {
+                            Spacer()
+                            Text("tap_to_start".localized)
+                                .font(.title3)
+                                .foregroundColor(Color("Gray44").opacity(0.2))
+                                .fontWeight(.bold)
+                            Spacer()
+                        }.opacity(keyboardShown ? 0 : 1)
+                    }
+                }.animation(.easeInOut, value: keyboardShown)
                 
                 AutoGrowShrinkTextEditor(
-                    text: $inputText,
-                    placeholder: "enter_text_placeholder".localized,
-                    minHeight: 50,
-                    maxHeight: 150,
-                    fontRange: 18...28,
-                    weight: .bold,
-                    isEditable: true,
-                    shrinkExponent: 2
-                )
-                .fadingEdges([.top, .bottom], length: 10)
-                AutoGrowShrinkTextEditor(
-                    text: $outText,
+                    text: $vm.inputText,
                     placeholder: "",
                     minHeight: 50,
                     maxHeight: 150,
@@ -67,27 +197,64 @@ struct HomeView: View {
                     weight: .bold,
                     isEditable: false,
                     isSelectable: true,
-                    autoScrollToBottomOnChange: true,
-                    shrinkExponent: 2
+                    autoScrollToBottomOnChange: true
                 )
-                .fadingEdges([.top, .bottom], length: 10)
+                .fadingEdges([.top], length: 10)
+                .padding(.horizontal)
+                .padding(.top, 8)
+                
+                VStack {
+                    if (!vm.inputText.isEmpty) {
+                        HStack {
+                            Spacer()
+                            Button {
+                                vm.copyToText()
+                            } label: {
+                                HStack {
+                                    Text("copy".localized)
+                                        .font(.subheadline)
+                                        .foregroundColor(Color("Gray44"))
+                                        .fontWeight(.light)
+                                    
+                                    Image(
+                                        systemName: "document.on.document.fill"
+                                    )
+                                    .font(.subheadline)
+                                    .foregroundColor(Color("Gray44"))
+                                    .symbolRenderingMode(.hierarchical)
+                                    
+                                }
+                            }
+                            
+                        }
+                        .padding(.horizontal)
+                        .opacity(vm.inputText.isEmpty ? 0 : 1)
+                        .disabled(vm.inputText.isEmpty)
+                        .padding(.top, -4)
+                    }
+                }.animation(.easeInOut, value: vm.inputText.isEmpty)
                 
                 Spacer()
             }
-            .padding(.bottom)
             .background(
-                RoundedCorner(radius: 32, corners: [.bottomLeft, .bottomRight])
-                    .fill(.white)
+                RoundedCorner(
+                    radius: 32,
+                    corners: [.bottomLeft, .bottomRight]
+                )
+                .fill(.white)
             )
             .keyboardVisibility($keyboardShown)
             .animation(.easeInOut(duration: 0.2), value: keyboardShown)
-            
+            .onTapGesture {
+                isFocused = true
+            }
+        
             VStack {
                 HStack(spacing: 12) {
                     Button {
-                        router.push(.langSelect)
+                        vm.fromLangSelectOpen()
                     } label: {
-                        Text(from)
+                        Text(vm.fromLangLabel)
                             .frame(width: 150, height: 44)
                             .background(Color.white)
                             .cornerRadius(12)
@@ -95,7 +262,7 @@ struct HomeView: View {
                     }
                     
                     Button {
-                        swap(&from, &to)
+                        vm.swapLangs()
                     } label: {
                         Image(systemName: "arrow.left.arrow.right")
                             .foregroundStyle(Color("Gray44"))
@@ -103,9 +270,9 @@ struct HomeView: View {
                     }
                     
                     Button {
-                        
+                        vm.toLangSelectOpen()
                     } label: {
-                        Text(to)
+                        Text(vm.toLangLabel)
                             .frame(width: 150, height: 44)
                             .background(Color.white)
                             .cornerRadius(12)
@@ -118,7 +285,7 @@ struct HomeView: View {
                 .padding(.vertical)
                 .padding(.top, -8)
                 
-            }
+            }.padding(.top, 8)
             
             if !keyboardShown {
                 HStack {
@@ -137,17 +304,20 @@ struct HomeView: View {
                     }
                     Spacer()
                     Button {
-                        
-                            // если только что был long-press — игнорим ближайший tap
-                            if suppressNextTap {
-                                suppressNextTap = false
-                                return
-                            }
-                            // tap = toggle запись
-                            recording.toggle()
-                            print(recording ? "tap: start" : "tap: stop")
-                            // TODO: вызов старта/стопа записи
-                        
+                        // ignore after long press
+                        if suppressNextTap {
+                            suppressNextTap = false
+                            return
+                        }
+                        // tap = toggle record
+                        recording.toggle()
+                    
+                        if (recording) {
+                            vm.recordingStart()
+                        }
+                        else {
+                            vm.recordingStop()
+                        }
                     } label: {
                         Image(systemName: recording ? "stop.fill" : "mic")
                             .font(.system(size: 24, weight: .semibold))
@@ -166,20 +336,17 @@ struct HomeView: View {
                     .onLongPressGesture(
                         minimumDuration: 0.25,
                         maximumDistance: 50,
-                        // поведение "пока держу — пишет; отпустил — стоп"
                         pressing: { isPressing in
                             if isPressing {
                                 suppressNextTap = true // подавим последующий tap
                                 if !recording {
                                     recording = true
-                                    print("hold: start")
-                                    // TODO: start recording (hold)
+                                    vm.recordingStart()
                                 }
                             } else {
                                 if recording {
                                     recording = false
-                                    print("hold: stop")
-                                    // TODO: stop recording (hold)
+                                    vm.recordingStop()
                                 }
                             }
                         },
@@ -202,14 +369,12 @@ struct HomeView: View {
                     }
                     Spacer()
                 }
-                .padding(.top, -18)
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
             
-        }.background(Color(white: 0.5, opacity: 0.1), ignoresSafeAreaEdges: Edge.Set.bottom)
+        }.background(
+            Color(white: 0.5, opacity: 0.1),
+            ignoresSafeAreaEdges: Edge.Set.bottom
+        )
     }
-}
-
-#Preview {
-    HomeView()
 }

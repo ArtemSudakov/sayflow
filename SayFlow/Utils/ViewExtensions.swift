@@ -57,7 +57,6 @@ private struct KeyboardObserver: ViewModifier {
             .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
                 isShown = false
             }
-        // На всякий случай: если фрейм ушёл вниз (клава скрылась), тоже выключаем
             .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillChangeFrameNotification)) { note in
                 guard
                     let end = (note.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue
@@ -68,11 +67,9 @@ private struct KeyboardObserver: ViewModifier {
 }
 
 extension View {
-    /// Плавное исчезание содержимого у выбранных краёв.
     func fadingEdges(_ edges: Edge.Set = [.top, .bottom], length: CGFloat = 16) -> some View {
         modifier(FadeEdges(edges: edges, length: length))
     }
-    /// Проверка вызвана ли клавиатура 
     func keyboardVisibility(_ isShown: Binding<Bool>) -> some View {
         self.modifier(KeyboardObserver(isShown: isShown))
     }
